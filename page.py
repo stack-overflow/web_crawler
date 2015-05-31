@@ -5,6 +5,7 @@ import urllib.robotparser
 
 import threading
 import html_link_extractor
+import robots_info
 
 class Page:
     visited = {}
@@ -31,7 +32,7 @@ class Page:
                     # print("Fixed link {0}".format(link))
 
                 if self.can_fetch(link):
-                    page = Page.create(link)
+                    page = Page.create(link, self.robots)
                     if not page.error:
                         self.children.append(page)
 
@@ -49,20 +50,20 @@ class Page:
     def fetch_robots(self):
         try:
             robots_link = Page.join_links(self.link, "/robots.txt")
-            robots_text = Page.get_page_text(robots_link)
+            req = urllib.request.Request(robots_link, method='HEAD')
+            f = urllib.request.urlopen(req)
         except:
             self.robots = None
             pass
         else:
-            if "User-agent:" in robots_text.decode("UTF-8"):
+            robots_text = Page.get_page_text(robots_link)
+            if robots_info.RobotsInfo.is_robots_content(robots_text.decode("UTF-8")):
                 print("Got robots.txt: {0}".format(robots_link))
-                self.robots = urllib.robotparser.RobotFileParser()
-                self.robots.set_url(robots_link)
-                self.robots.read()
+                self.robots = robots_info.RobotsInfo(self.link, robots_link)
 
     def can_fetch(self, link):
         if self.robots:
-            return self.robots.can_fetch("*", link) and Page.is_link_valid(link)
+            return self.robots.can_fetch(link) and Page.is_link_valid(link)
         else:
             return Page.is_link_valid(link)
 
@@ -90,12 +91,16 @@ class Page:
             self.processed = value
 
     @classmethod
-    def create(cls, link):
+    def create(cls, link, robots):
         with cls.visited_lock:
             if link in cls.visited:
                 return cls.visited[link]
             else:
-                new_page = cls(link)
+                # Pass robots only when base_url of the robots.txt
+                # is the prefix of the link.
+                if not robots or not link.startswith(robots.base_url):
+                    robots = None
+                new_page = cls(link, robots)
                 cls.visited[link] = new_page
                 return new_page
 
