@@ -100,15 +100,15 @@ class LinkTraverser:
             self.work_queue.put(next_page)
 
 if __name__ == "__main__":
-    t = LinkTraverser("http://www.pg.gda.pl/~manus/")
-    start = time.time()
-    t.go()
-    end = time.time()
-    sequential_time = end - start
-    t.root_page = None
-    t = None
-
-    page.Page.reset()
+#    t = LinkTraverser("http://www.pg.gda.pl/~manus/")
+#    start = time.time()
+#    t.go()
+#    end = time.time()
+#    sequential_time = end - start
+#    t.root_page = None
+#    t = None
+#
+#    page.Page.reset()
 
     t = LinkTraverser("http://www.pg.gda.pl/~manus/")
     start = time.time()
@@ -120,5 +120,5 @@ if __name__ == "__main__":
 
     page.Page.reset()
 
-    print("Sequential time: {0}".format(sequential_time))
+#    print("Sequential time: {0}".format(sequential_time))
     print("Concurrent time: {0}".format(concurrent_time))

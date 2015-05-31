@@ -10,12 +10,13 @@ class Page:
     visited = {}
     visited_lock = threading.Lock()
 
-    def __init__(self, link):
+    def __init__(self, link, robots=None):
         self.link = link
         self.children = []
         self.processed = False
         self.page_lock = threading.RLock()
         self.error = False
+        self.robots = robots
 
     def add_child(self, link):
         with self.page_lock:
@@ -24,16 +25,17 @@ class Page:
 
             exists = [child for child in self.children if child.link == link]
             if (len(exists) == 0):
-                page = Page.create(link)
-                if not page.error:
-                    if not link.startswith("http"):
-                        print("Fixing link {0}".format(link))
-                        link = Page.join_links(self.link, link)
-                        print("Fixed link {0}".format(link))
+                if not link.startswith("http"):
+                    # print("Fixing link {0}".format(link))
+                    link = Page.join_links(self.link, link)
+                    # print("Fixed link {0}".format(link))
 
-                    self.children.append(page)
+                if self.can_fetch(link):
+                    page = Page.create(link)
+                    if not page.error:
+                        self.children.append(page)
 
-    def add_page_text(self, text):
+    def parse_page_text(self, text):
         with self.page_lock:
             self.text = text
 
@@ -44,11 +46,30 @@ class Page:
             for link in child_links:
                 self.add_child(link)
 
+    def fetch_robots(self):
+        try:
+            robots_link = Page.join_links(self.link, "/robots.txt")
+            robots_text = Page.get_page_text(robots_link)
+        except:
+            self.robots = None
+            pass
+        else:
+            if "User-agent:" in robots_text.decode("UTF-8"):
+                print("Got robots.txt: {0}".format(robots_link))
+                self.robots = urllib.robotparser.RobotFileParser()
+                self.robots.set_url(robots_link)
+                self.robots.read()
+
+    def can_fetch(self, link):
+        if self.robots:
+            return self.robots.can_fetch("*", link) and Page.is_link_valid(link)
+        else:
+            return Page.is_link_valid(link)
+
     def process(self):
         with self.page_lock:
             if not self.processed:
                 try:
-                    print("Trying to get: {0}".format(self.link))
                     text = Page.get_page_text(self.link)
                 except Exception as e:
                     print("urllib.request error on link {0}: {1}".format(self.link, e))
@@ -56,7 +77,8 @@ class Page:
                     return False
                 else:
                     print("Got: {0}".format(self.link))
-                    self.add_page_text(text)
+                    self.fetch_robots()
+                    self.parse_page_text(text)
                     self.set_processed(True)
                     return True
             else:
