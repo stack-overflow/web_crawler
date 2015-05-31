@@ -11,13 +11,7 @@ import concurrent.futures
 from queue import Queue
 
 import time
-
 import page
-
-def get_page_text(link):
-    response = urllib.request.urlopen(link)
-    html = response.read()
-    return html
 
 class LinkTraverser:
     def __init__(self, root_link):
