@@ -4,6 +4,7 @@ import urllib.request
 import urllib.robotparser
 
 import threading
+
 import html_link_extractor
 import robots_info
 
@@ -42,7 +43,7 @@ class Page:
 
             child_links = []
             html_parser = html_link_extractor.HtmlLinkExtractor(child_links)
-            html_parser.feed(self.text.decode('latin-1'))
+            html_parser.feed(self.text.decode('ascii', 'ignore'))
 
             for link in child_links:
                 self.add_child(link)
@@ -51,13 +52,13 @@ class Page:
         try:
             robots_link = Page.join_links(self.link, "/robots.txt")
             req = urllib.request.Request(robots_link, method='HEAD')
-            f = urllib.request.urlopen(req)
+            f = urllib.request.urlopen(req, timeout=8)
         except:
             self.robots = None
             pass
         else:
             robots_text = Page.get_page_text(robots_link)
-            if robots_info.RobotsInfo.is_robots_content(robots_text.decode("UTF-8")):
+            if robots_info.RobotsInfo.is_robots_content(robots_text.decode('ascii', 'ignore')):
                 print("Got robots.txt: {0}".format(robots_link))
                 self.robots = robots_info.RobotsInfo(self.link, robots_link)
 
@@ -111,7 +112,7 @@ class Page:
 
     @classmethod
     def get_page_text(cls, link):
-        response = urllib.request.urlopen(link)
+        response = urllib.request.urlopen(link, timeout=8)
         html = response.read()
         return html
 
