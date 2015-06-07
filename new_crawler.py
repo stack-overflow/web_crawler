@@ -91,8 +91,8 @@ class LinkTraverser:
             self.work_queue.put(next_page)
 
 if __name__ == "__main__":
-    wgraph_path = "graph-1433704861.gexf"
-    #wgraph_path = None
+    #wgraph_path = "graph-1433704861.gexf"
+    wgraph_path = None
     link = "http://web.mit.edu/"
 
     wgraph = None
