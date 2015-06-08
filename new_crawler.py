@@ -12,6 +12,7 @@ import web_graph
 
 class LinkTraverser:
     def __init__(self, root_link):
+        page.Page.set_root_url(root_link)
         self.root_page = page.Page(root_link)
         self.root_page.process()
         self.work_queue = Queue()
@@ -75,15 +76,14 @@ class LinkTraverser:
 
     def go_concurrent(self):
         count = 0
-        while self.work_queue:
+        while not self.work_queue.empty():
             cur_page = self.work_queue.get()
 
-            # For testing purposes
-            if count >= 10:
-                print ("Reached the limit of processing pages. Exiting.")
-                return
-            count += 1
-
+#            # For testing purposes
+#            if count >= 10:
+#                print ("Reached the limit of processing pages. Exiting.")
+#                return
+#            count += 1
             for next_page in self.traverse_concurrent(cur_page):
                 self.work_queue.put(next_page)
 
@@ -93,7 +93,7 @@ class LinkTraverser:
 if __name__ == "__main__":
     #wgraph_path = "graph-1433704861.gexf"
     wgraph_path = None
-    link = "http://web.mit.edu/"
+    link = "http://www.pg.gda.pl/~manus/"
 
     wgraph = None
     if not wgraph_path:
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     else:
         wgraph = web_graph.deserialize_graph(wgraph_path)
 
-    print(wgraph.edges())
+    #print(wgraph.edges())
 
     print("Start page rank")
 

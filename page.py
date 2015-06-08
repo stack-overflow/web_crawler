@@ -11,6 +11,7 @@ import robots_info
 class Page:
     visited = {}
     visited_lock = threading.Lock()
+    root_url = None
 
     def __init__(self, link, robots=None):
         self.link = link
@@ -64,9 +65,9 @@ class Page:
 
     def can_fetch(self, link):
         if self.robots:
-            return self.robots.can_fetch(link) and Page.is_link_valid(link)
+            return self.robots.can_fetch(link) and Page.is_link_valid(link) and Page.is_link_from_domain(link)
         else:
-            return Page.is_link_valid(link)
+            return Page.is_link_valid(link) and Page.is_link_from_domain(link)
 
     def process(self):
         with self.page_lock:
@@ -130,9 +131,35 @@ class Page:
         return link
 
     @classmethod
-    def is_link_valid(cls, link):
+    def skip_http_prefix(cls, link: str):
+        if link.startswith("http://"):
+            return link[7:]
+        elif link.startswith("https://"):
+            return link[8:]
+        else:
+            return link
+
+    @classmethod
+    def is_link_valid(cls, link: str):
         return link != "#"
+
+    @classmethod
+    def is_link_from_domain(cls, link: str):
+        if not link:
+            return False
+        is_from_domain = link.startswith(cls.root_url)
+        if not is_from_domain:
+            normalized_link = Page.skip_http_prefix(link)
+            is_from_domain = normalized_link.startswith(cls.normalized_root_url)
+        return link != "#" and is_from_domain
 
     @classmethod
     def reset(cls):
         cls.visited = {}
+
+    @classmethod
+    def set_root_url(cls, root_url):
+        with cls.visited_lock:
+            cls.root_url = root_url
+            print (cls.root_url)
+            cls.normalized_root_url = Page.skip_http_prefix(root_url)

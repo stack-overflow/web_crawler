@@ -60,7 +60,7 @@ def page_rank(graph: nx.DiGraph, root_link: str):
             for link in indices.keys():
                 Q.appendleft(link)
 
-    print(rank)
+    print(list(rank.items())[:10])
 #    for key, value in rank.items():
 #        print("Link: {0}\nValues: {1}".format(key, value))
 
@@ -74,6 +74,6 @@ def analyze(graph: nx.DiGraph, root_link: str):
     print("Number of vertices: {0}".format(num_v))
     print("Number of edges: {0}".format(num_e))
     print("Connected components:")
-    print(nx.connected_components(graph.to_undirected()))
+    #print(nx.connected_components(graph.to_undirected()))
     print("Degree:")
-    print(nx.degree(graph))
+    print(list(nx.degree(graph))[:10])
