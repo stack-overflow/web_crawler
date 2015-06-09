@@ -8,6 +8,7 @@ import urllib.robotparser
 import threading
 
 import html_link_extractor
+import html_text_extractor
 import robots_info
 
 class Page:
@@ -29,6 +30,8 @@ class Page:
             os.makedirs(os.path.dirname(path))
         with open(path, "wb") as f:
             f.write(self.text)
+        with open(path+".txt", "w") as f:
+            f.write(self.normalized_text)
 
     def add_child(self, link):
         with self.page_lock:
@@ -54,6 +57,10 @@ class Page:
             child_links = []
             html_parser = html_link_extractor.HtmlLinkExtractor(child_links)
             html_parser.feed(self.text.decode('ascii', 'ignore'))
+
+            html_parser = html_text_extractor.HtmlTextExtractor()
+            html_parser.feed(self.text.decode('ascii', 'ignore'))
+            self.normalized_text = html_parser.text
 
             for link in child_links:
                 self.add_child(link)
