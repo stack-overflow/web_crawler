@@ -27,16 +27,6 @@ class LinkTraverser:
         else:
             return False
 
-    def traverse(self, page):
-        result_children = set()
-        for child in page.children:
-            if self.visit_one_page(child):
-                result_children.add(child)
-            elif child.error:
-                # False might indicate that there was an error.
-                page.children.remove(child)
-        return result_children
-
     def traverse_concurrent(self, page):
         result_children = set()
 
@@ -60,30 +50,11 @@ class LinkTraverser:
 
         return result_children
 
-    def go(self):
-        count = 0
-        while self.work_queue:
-            cur_page = self.work_queue.get()
-
-            # For testing purposes
-            if count >= 10:
-                print ("Reached the limit of processing pages. Exiting.")
-                return
-            count += 1
-
-            for next_page in self.traverse(cur_page):
-                self.work_queue.put(next_page)
-
     def go_concurrent(self):
         count = 0
         while not self.work_queue.empty():
             cur_page = self.work_queue.get()
 
-#            # For testing purposes
-#            if count >= 10:
-#                print ("Reached the limit of processing pages. Exiting.")
-#                return
-#            count += 1
             for next_page in self.traverse_concurrent(cur_page):
                 self.work_queue.put(next_page)
 
@@ -102,17 +73,10 @@ if __name__ == "__main__":
         t.go_concurrent()
         end = time.time()
         concurrent_time = end - start
-
-    #    print("Sequential time: {0}".format(sequential_time))
         print("Concurrent time: {0}".format(concurrent_time))
 
-        print("Start build graph")
-        start = time.time()
         web_graph.pages_to_hdd(t.root_page)
         wgraph = web_graph.pages_to_graph(t.root_page)
-        end = time.time()
-        build_graph_time = end - start
-        print("Build graph time: {0}".format(build_graph_time))
         web_graph.serialize_graph(wgraph)
 
         t.root_page = None
@@ -120,8 +84,6 @@ if __name__ == "__main__":
         page.Page.reset()
     else:
         wgraph = web_graph.deserialize_graph(wgraph_path)
-
-    #print(wgraph.edges())
 
     print("Start page rank")
 
