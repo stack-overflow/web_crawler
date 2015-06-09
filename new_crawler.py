@@ -9,6 +9,7 @@ import time
 
 import page
 import web_graph
+import page_vectorizer
 
 class LinkTraverser:
     def __init__(self, root_link):
@@ -17,6 +18,7 @@ class LinkTraverser:
         self.root_page.process()
         self.work_queue = Queue()
         self.work_queue.put(self.root_page)
+        self.vectorizer = page_vectorizer.PageVectorizer()
 
     def visit_one_page(self, page):
         # Check page.processed to avoid calling page.process()
@@ -27,7 +29,7 @@ class LinkTraverser:
         else:
             return False
 
-    def traverse_concurrent(self, page):
+    def traverse_concurrent(self, page: page.Page):
         result_children = set()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
@@ -45,6 +47,7 @@ class LinkTraverser:
                 else:
                     if result:
                         result_children.add(child)
+                        self.vectorizer.add_document(child.link, child.normalized_text)
                     elif child.error:
                         page.children.remove(child)
 
@@ -74,6 +77,11 @@ if __name__ == "__main__":
         end = time.time()
         concurrent_time = end - start
         print("Concurrent time: {0}".format(concurrent_time))
+
+        t.vectorizer.make_doc_vectors()
+
+        print("Vocabulary: {0}".format(t.vectorizer.vocabulary))
+        print("Document vectors: {0}".format(t.vectorizer.doc_vectors))
 
         web_graph.pages_to_hdd(t.root_page)
         wgraph = web_graph.pages_to_graph(t.root_page)
