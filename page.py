@@ -21,6 +21,10 @@ class Page:
         self.error = False
         self.robots = robots
 
+    def save(self):
+        with open(self.link + ".txt", "w") as f:
+            f.write(self.text)
+
     def add_child(self, link):
         with self.page_lock:
             if not Page.is_link_valid(link):

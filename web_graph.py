@@ -32,6 +32,23 @@ def pages_to_graph(root_page: Page):
 
     return graph
 
+def pages_to_hdd(root_page: Page):
+    Q = deque([root_page])
+    color = { root_page.link : 1 }
+
+    while Q:
+        cur = Q.pop()
+        #print("Current: {0}".format(cur.link))
+        cur_link = cur.link
+        for page in cur.children:
+            page_link = page.link
+            #print("Child: {0}".format(link))
+            page.save()
+            if page_link not in color and not page.error and page.processed:
+                color[page_link] = 1
+                Q.appendleft(page)
+        color[cur_link] = 2
+
 def serialize_graph(graph):
     nx.write_gexf(graph, "graph-{0}.gexf".format(int(time.time())))
 
