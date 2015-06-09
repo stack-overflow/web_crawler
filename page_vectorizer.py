@@ -18,7 +18,7 @@ class PageVectorizer:
     # Extracts only alpha words (no numbers or punctuatuion)
     def extract_good_words(self, text):
         stopwords = nltk.corpus.stopwords.words('english')
-        content = [w for w in text if w.lower() not in stopwords]
+        content = [w.lower() for w in text if w.lower() not in stopwords]
         content = [w for w in content if w.isalpha() and len(w) > 2]
         #content = [self.stemmer.stem(w) for w in content]
         return content
