@@ -108,6 +108,7 @@ if __name__ == "__main__":
 
         print("Start build graph")
         start = time.time()
+        web_graph.pages_to_hdd(t.root_page)
         wgraph = web_graph.pages_to_graph(t.root_page)
         end = time.time()
         build_graph_time = end - start

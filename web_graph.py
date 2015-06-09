@@ -8,8 +8,6 @@ import networkx as nx
 import time
 from networkx.readwrite import json_graph
 
-import matplotlib.pyplot as plt
-import nltk
 
 def pages_to_graph(root_page: Page):
     graph = nx.DiGraph()

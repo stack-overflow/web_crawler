@@ -1,4 +1,6 @@
 # Copyright (c) 2015 Tomasz Truszkowski <tomtrusz@gmail.com>
+import os
+
 __author__ = 'Tomasz Truszkowski <tomtrusz@gmail.com>'
 import urllib.request
 import urllib.robotparser
@@ -22,7 +24,10 @@ class Page:
         self.robots = robots
 
     def save(self):
-        with open(self.link + ".txt", "w") as f:
+        path = "/".join(self.link.split("/")[3:])
+        if not os.path.exists(path):
+            os.makedirs(os.path.dirname(path))
+        with open(path, "wb") as f:
             f.write(self.text)
 
     def add_child(self, link):
