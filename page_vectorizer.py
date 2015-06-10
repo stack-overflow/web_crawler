@@ -2,13 +2,14 @@ __author__ = 'Tomasz Truszkowski <tomtrusz@gmail.com>'
 
 import os
 import nltk
-from nltk.stem.porter import PorterStemmer
+#from nltk.stem.porter import PorterStemmer
 
 class PageVectorizer:
     def __init__(self):
         self.data = {}
         self.doc_vectors = {}
         self.vocabulary = {}
+        self.vocabulary_inv = {}
         self.vocabulary_size = 0
         #self.stemmer = PorterStemmer()
 
@@ -49,6 +50,8 @@ class PageVectorizer:
         for word in self.vocabulary.keys():
             self.vocabulary[word] = vocab_it
             vocab_it += 1
+
+        self.vocabulary_inv = dict(zip(self.vocabulary.values(), self.vocabulary.keys()))
 
         self.vocabulary_size = vocab_it
 

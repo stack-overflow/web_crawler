@@ -5,7 +5,9 @@ __author__ = 'Tomasz Truszkowski <tomtrusz@gmail.com>'
 # Concurrency
 import concurrent.futures
 from queue import Queue
+from operator import itemgetter
 import time
+import random
 
 import page
 import web_graph
@@ -64,6 +66,12 @@ class LinkTraverser:
         for next_page in self.traverse_concurrent(cur_page):
             self.work_queue.put(next_page)
 
+def normalize(vec):
+    s = sum(vec)
+    for i in range(len(vec)):
+        vec[i] = vec[i] * 1.0 / s
+    return vec
+
 if __name__ == "__main__":
     #wgraph_path = "graph-1433704861.gexf"
     wgraph_path = None
@@ -86,6 +94,78 @@ if __name__ == "__main__":
         web_graph.pages_to_hdd(t.root_page)
         wgraph = web_graph.pages_to_graph(t.root_page)
         web_graph.serialize_graph(wgraph)
+
+        print("Start EM:")
+        ilosc_topicow = 20
+
+        doc_topic = {}
+        topic_prob = {}
+        for doc in t.vectorizer.data.keys():
+            doc_topic[doc] = normalize([random.random() for i in range(ilosc_topicow)])
+            topic_prob[doc] = [[0 for j in range(ilosc_topicow)] for i in range(t.vectorizer.vocabulary_size)]
+
+        topic_word = [normalize([random.random() for i in range(t.vectorizer.vocabulary_size)]) for j in range(ilosc_topicow)]
+
+
+
+
+        for it in range(0, 10):
+            print("Iteration #"+str(it))
+            #E step
+            for doc in t.vectorizer.data.keys():
+                for word in t.vectorizer.vocabulary.values():
+                    prob = [0] * ilosc_topicow
+                    for i in range(ilosc_topicow):
+                        prob[i] = doc_topic[doc][i] * topic_word[i][word]
+                    if sum(prob) == 0.0:
+                        print("ZOMG ZLE SIE DZIEJE NA SWIECIE")
+                    else:
+                        topic_prob[doc][word] = normalize(prob)
+
+            #M step
+            #P(w|z)
+            for topic in range(ilosc_topicow):
+                for word in t.vectorizer.vocabulary.values():
+                    prob = 0
+                    for doc in t.vectorizer.data.keys():
+                        count = t.vectorizer.doc_vectors[doc][word]
+                        prob += count * topic_prob[doc][word][topic]
+                    topic_word[topic][word] = prob
+                topic_word[topic] = normalize(topic_word[topic])
+
+            #P(z|d)
+            for doc in t.vectorizer.data.keys():
+                for topic in range(ilosc_topicow):
+                    prob = 0
+                    for word in t.vectorizer.vocabulary.values():
+                        count = t.vectorizer.doc_vectors[doc][word]
+                        prob += count * topic_prob[doc][word][topic]
+                    doc_topic[doc][topic] = prob
+                doc_topic[doc] = normalize(doc_topic[doc])
+
+        #print
+        #print("doc-topic: {0}".format(doc_topic))
+        print("topic-words: ")
+        for i in range(ilosc_topicow):
+            print("topic"+str(i), end=": ")
+            topic_id = sorted([[topic_word[i][j], j] for j in range(t.vectorizer.vocabulary_size)], key=itemgetter(0), reverse=True)
+            for j in range(5):
+                print(t.vectorizer.vocabulary_inv[topic_id[j][1]], end=", ")
+            print()
+
+        print("\n")
+        print("doc-topics: ")
+        for doc in t.vectorizer.data.keys():
+            print(doc, end=": ")
+            topic_id = sorted([[doc_topic[doc][j], j] for j in range(ilosc_topicow)], key=itemgetter(0), reverse=True)
+            for j in range(2):
+                print("topic"+str(topic_id[j][1]), end=", ")
+            print()
+
+        print("\n\n")
+
+
+
 
         t.root_page = None
         t = None
