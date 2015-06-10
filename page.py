@@ -26,7 +26,7 @@ class Page:
 
     def save(self):
         path = "/".join(self.link.split("/")[3:])
-        if not os.path.exists(path):
+        if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         with open(path, "wb") as f:
             f.write(self.text)
