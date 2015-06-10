@@ -41,7 +41,10 @@ def pages_to_hdd(root_page: Page):
         for page in cur.children:
             page_link = page.link
             #print("Child: {0}".format(link))
-            page.save()
+            try:
+                page.save()
+            except Exception as e:
+                print("Failed to save: {0}, exception {1}".format(page.link, e))
             if page_link not in color and not page.error and page.processed:
                 color[page_link] = 1
                 Q.appendleft(page)

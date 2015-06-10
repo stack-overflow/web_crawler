@@ -56,7 +56,6 @@ class LinkTraverser:
         return result_children
 
     def go_concurrent(self):
-        count = 0
         while not self.work_queue.empty():
             cur_page = self.work_queue.get()
 

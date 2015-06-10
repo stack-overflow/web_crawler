@@ -4,6 +4,7 @@ import os
 __author__ = 'Tomasz Truszkowski <tomtrusz@gmail.com>'
 import urllib.request
 import urllib.robotparser
+from urllib.parse import urljoin
 
 import threading
 
@@ -135,16 +136,7 @@ class Page:
 
     @classmethod
     def join_links(cls, left, right):
-        link = left
-        if (left.endswith("/") and not right.startswith("/")) or\
-                (not left.endswith("/") and right.startswith("/")):
-            link += right
-        elif right.startswith("/"):
-            link += right[1:]
-        else:
-            link += "/" + right
-
-        return link
+        return urljoin(left, right)
 
     @classmethod
     def skip_http_prefix(cls, link: str):
