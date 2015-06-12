@@ -56,8 +56,13 @@ class LinkTraverser:
         return result_children
 
     def go_concurrent(self):
+        count = 0
         while not self.work_queue.empty():
             cur_page = self.work_queue.get()
+
+            if count > 8:
+                break
+            count += 1
 
             for next_page in self.traverse_concurrent(cur_page):
                 self.work_queue.put(next_page)
@@ -74,7 +79,7 @@ def normalize(vec):
 if __name__ == "__main__":
     #wgraph_path = "graph-1433704861.gexf"
     wgraph_path = None
-    link = "http://www.pg.gda.pl/~manus/"
+    link = "http://kaims.pl/~mima/mi_2015"
 
     wgraph = None
     if not wgraph_path:
@@ -144,24 +149,34 @@ if __name__ == "__main__":
 
         #print
         #print("doc-topic: {0}".format(doc_topic))
-        print("topic-words: ")
-        for i in range(ilosc_topicow):
-            print("topic"+str(i), end=": ")
-            topic_id = sorted([[topic_word[i][j], j] for j in range(t.vectorizer.vocabulary_size)], key=itemgetter(0), reverse=True)
-            for j in range(5):
-                print(t.vectorizer.vocabulary_inv[topic_id[j][1]], end=", ")
-            print()
+        with open('PLSA_result.txt', 'w') as f:
+            print("topic-words: ")
+            f.write("topic-words: ")
+            for i in range(ilosc_topicow):
+                print("topic"+str(i), end=": ")
+                f.write("topic"+str(i) + ": ")
+                topic_id = sorted([[topic_word[i][j], j] for j in range(t.vectorizer.vocabulary_size)], key=itemgetter(0), reverse=True)
+                for j in range(5):
+                    print(t.vectorizer.vocabulary_inv[topic_id[j][1]], end=", ")
+                    f.write(t.vectorizer.vocabulary_inv[topic_id[j][1]] + ", ")
+                print()
+                f.write("\n")
 
-        print("\n")
-        print("doc-topics: ")
-        for doc in t.vectorizer.data.keys():
-            print(doc, end=": ")
-            topic_id = sorted([[doc_topic[doc][j], j] for j in range(ilosc_topicow)], key=itemgetter(0), reverse=True)
-            for j in range(2):
-                print("topic"+str(topic_id[j][1]), end=", ")
-            print()
+            print("\n")
+            f.write("\n")
+            print("doc-topics: ")
+            f.write("doc-topics: ")
+            for doc in t.vectorizer.data.keys():
+                print(doc, end=": ")
+                f.write(doc + ": ")
+                topic_id = sorted([[doc_topic[doc][j], j] for j in range(ilosc_topicow)], key=itemgetter(0), reverse=True)
+                for j in range(2):
+                    print("topic"+str(topic_id[j][1]), end=", ")
+                    f.write("topic"+str(topic_id[j][1]) + ", ")
+                print()
+                f.write("\n")
 
-        print("\n\n")
+            print("\n\n")
 
 
 
